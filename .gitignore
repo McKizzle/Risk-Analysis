@@ -1,0 +1,22 @@
+# History files
+.Rhistory
+.RData
+
+# Example code in package build process
+*-Ex.R
+
+# System Files
+.DS_Store
+
+# R Files
+.Rapp.history
+.Rhistory
+.Rproj.user
+
+# Huge data files
+PairwiseCitations_75-99.csv
+PatentData_63-99.csv
+
+# Other files
+README.html
+
