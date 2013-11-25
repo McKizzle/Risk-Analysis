@@ -1,11 +1,7 @@
-# R Script that takes all of the CSV data calls the proper scripts and dumps it to an sqlite database.
-rm(list=ls())
-
-# library('reshape')
-
 # Set the working directory
+prevwd = getwd()
 cddir <- tryCatch({
-  setwd('./src/utils/')
+  setwd('./utils/')
 }, error=function(w) {
   cat("No need to set the working directory to the source folder.\n")
 })
@@ -13,9 +9,6 @@ rm(cddir)
 
 source("helpers.R")
 llibrary('reshape')
-llibrary('ISOcodes')
-llibrary('ggplot2')
-llibrary('spatstat')
 
 crime.db.path <- "../../data/"
 crime.db.name <- "violentcrimes.sqlite3"
@@ -88,56 +81,7 @@ eurostat.homicides.df[[crm.srce.col]] <- data.source
 colnames(eurostat.homicides.df) <-  c(crm.year.col, crm.locn.col, crm.valu.col,
                                     crm.type.col, crm.isrt.col, crm.srce.col)
 
-# get the countries in the UN_M ISO and extract teh set of countries that match
-# the map_data countries. 
-data("UN_M.49_Countries")
-data("UN_M.49_Regions")
-map.data <- map_data('world2') 
-
-map.regions <- unique(map.data$region)
-map.regions <- map.regions[which(map.regions %in% UN_M.49_Countries$Name)]
-
-not.in.map.regions <- UN_M.49_Countries$Name[
-  !(UN_M.49_Countries$Name %in% unique(map.data$region))
-  ]
-not.in.un.countries <- unique(map.data$region[
-  !(unique(map.data$region) %in% UN_M.49_Countries$Name)  
-  ])
-
-
-
-#### SCRAP
-# 
-# # Read FBI UCR Datasets for Murder 
-# ucr.files <- c("StatesRate_AggravatedAssault.csv", "StatesRate_Larceny-Theft.csv", 
-#               "StatesRate_PropertyCrime.csv", "StatesRate_Burglary.csv", 
-#               "StatesRate_MotorVehicleTheft.csv", "StatesRate_Robbery.csv",
-#               "StatesRate_ForcibleRape.csv", "StatesRate_Murder.csv", 
-#               "StatesRate_ViolentCrime.csv")
-# ucr.types <- c("Aggravated Assault", "Larceny-Theft", "Property Crime", 
-#                     "Burglary", "Motor Vehicle Theft", "Robbery",
-#                     "Forcible Rape", "Murder", "Violent Crime")
-# ucr.files.path <- "../../data/orignal/UCR/Rates/"
-# 
-# ucr.data <- NULL
-# for(i in 1:length(ucr.files)) {
-#   file <- ucr.files[i]
-#   type <- ucr.types[i]
-#   
-#   to.open <- paste(ucr.files.path, file, sep="")
-#   command <- paste("./ucr2data.pl", "--file", to.open)
-#   df <- read.csv(pipe(command), header=T, check.names=F)
-# 
-#   types = rep(type, dim(df)[1])  
-#   df <- cbind(df, 'type'=types)  
-#   df <- melt(df, id=c("Year", "type"))
-#   
-#   if(is.null(ucr.data)) {
-#     ucr.data <- df  
-#   } else {
-#     ucr.data <- rbind(ucr.data, df)
-#   }
-# }
+setwd(prevwd)
 
 
 
