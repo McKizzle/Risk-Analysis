@@ -9,10 +9,13 @@ cddir <- tryCatch({
 }, error=function(w) {
   cat("No need to set the working directory to the source folder.\n")
 })
+rm(cddir)
 
 source("helpers.R")
-
 llibrary('reshape')
+llibrary('ISOcodes')
+llibrary('ggplot2')
+llibrary('spatstat')
 
 crime.db.path <- "../../data/"
 crime.db.name <- "violentcrimes.sqlite3"
@@ -38,13 +41,13 @@ to.open <- paste(ucr.files.path, ucr.files[1], sep="")
 command <- paste("./ucr2data.pl", "--file", to.open)
 ucr.homicides.df <- read.csv(pipe(command), header=T, check.names=F)
 
-ucr.homicides.df[[crm.type.col]] = crime.type
-ucr.homicides.df[[crm.isrt.col]] = T
-ucr.homicides.df[[crm.srce.col]] = data.source
+ucr.homicides.df[[crm.type.col]] <- crime.type
+ucr.homicides.df[[crm.isrt.col]] <- T
+ucr.homicides.df[[crm.srce.col]] <- data.source
 ucr.homicides.df <- melt(ucr.homicides.df, id=c("Year", crm.type.col, 
                                                 crm.isrt.col, crm.srce.col))
-colnames(ucr.homicides.df) = c(crm.year.col, crm.type.col, crm.isrt.col, 
-                               crm.locn.col, crm.valu.col, crm.srce.col)
+colnames(ucr.homicides.df) <- c(crm.year.col, crm.type.col, crm.isrt.col, 
+                                crm.srce.col, crm.locn.col, crm.valu.col)
 
 # 2: Load from UNODC
 unodc.files <- c('Homicide_Rates.csv') 
@@ -55,14 +58,14 @@ to.open <- paste(unodc.files.path, unodc.files[1], sep="")
 # command <- paste("./ucr2data.pl", "--file", to.open)
 unodc.homicides.df <- read.csv(file=to.open, header=T, sep=',', quote="\"")
 
-unodc.homicides.df$Count = NULL
-unodc.homicides.df$Source = NULL
-unodc.homicides.df$Source.Type = NULL
+unodc.homicides.df$Count <- NULL
+unodc.homicides.df$Source <- NULL
+unodc.homicides.df$Source.Type <- NULL
 
-unodc.homicides.df[[crm.type.col]] = crime.type
-unodc.homicides.df[[crm.isrt.col]] = T
-unodc.homicides.df[[crm.srce.col]] = data.source
-colnames(unodc.homicides.df) = c(crm.locn.col, crm.year.col, crm.valu.col, 
+unodc.homicides.df[[crm.type.col]] <- crime.type
+unodc.homicides.df[[crm.isrt.col]] <- T
+unodc.homicides.df[[crm.srce.col]] <- data.source
+colnames(unodc.homicides.df) <- c(crm.locn.col, crm.year.col, crm.valu.col, 
                                  crm.type.col, crm.isrt.col, crm.srce.col)
 
 # 3: Load form Eurostat
@@ -73,17 +76,34 @@ data.source <- 'Eurostat'
 to.open <- paste(eurostat.files.path, eurostat.files[1], sep="")
 eurostat.homicides.df <- read.csv(file=to.open, header=T, sep=',', quote="\"")
 
-eurostat.homicides.df$Flag.and.Footnotes = NULL
-eurostat.homicides.df$UNIT = NULL
-eurostat.homicides.df = eurostat.homicides.df[eurostat.homicides.df$CRIM == 'Homicide',]
-eurostat.homicides.df$CRIM = NULL
-row.names(eurostat.homicides.df) = NULL
+eurostat.homicides.df$Flag.and.Footnotes <- NULL
+eurostat.homicides.df$UNIT <- NULL
+eurostat.homicides.df <- eurostat.homicides.df[eurostat.homicides.df$CRIM == 'Homicide',]
+eurostat.homicides.df$CRIM <- NULL
+row.names(eurostat.homicides.df) <- NULL
 
-eurostat.homicides.df[[crm.type.col]] = crime.type
-eurostat.homicides.df[[crm.isrt.col]] = F
-eurostat.homicides.df[[crm.srce.col]] = data.source
-colnames(eurostat.homicides.df) = c(crm.year.col, crm.locn.col, crm.valu.col,
+eurostat.homicides.df[[crm.type.col]] <- crime.type
+eurostat.homicides.df[[crm.isrt.col]] <- F
+eurostat.homicides.df[[crm.srce.col]] <- data.source
+colnames(eurostat.homicides.df) <-  c(crm.year.col, crm.locn.col, crm.valu.col,
                                     crm.type.col, crm.isrt.col, crm.srce.col)
+
+# get the countries in the UN_M ISO and extract teh set of countries that match
+# the map_data countries. 
+data("UN_M.49_Countries")
+data("UN_M.49_Regions")
+map.data <- map_data('world2') 
+
+map.regions <- unique(map.data$region)
+map.regions <- map.regions[which(map.regions %in% UN_M.49_Countries$Name)]
+
+not.in.map.regions <- UN_M.49_Countries$Name[
+  !(UN_M.49_Countries$Name %in% unique(map.data$region))
+  ]
+not.in.un.countries <- unique(map.data$region[
+  !(unique(map.data$region) %in% UN_M.49_Countries$Name)  
+  ])
+
 
 
 #### SCRAP
