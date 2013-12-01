@@ -14,8 +14,10 @@ source("./utils/helpers.R")
 source("./utils/dump2arr.R")
 
 llibrary('ISOcodes')
-llibrary('ggplot2')
-llibrary('spatstat')
+llibrary('ggplot2') #contains the map_data function.
+llibrary('maps')
+llibrary('maptools')
+# llibrary('spatstat')
 
 # get the countries in the UN_M ISO and extract teh set of countries that match
 # the map_data countries. 
@@ -32,4 +34,11 @@ not.in.map.regions <- UN_M.49_Countries$Name[
 not.in.un.countries <- unique(map.data$region[
   !(unique(map.data$region) %in% UN_M.49_Countries$Name)  
   ])
+
+# Lets aquire the countries from the shapefiles I downloaded from the internet.
+countries.shp = readShapeSpatial(
+  fn='../data/mapdata/TM_WORLD_BORDERS-0.3//TM_WORLD_BORDERS-0.3.shp', 
+  proj4string=CRS("+proj=longlat +ellps=clrk66"),
+  verbose=T
+)
 
