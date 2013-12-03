@@ -9,53 +9,53 @@ cddir <- tryCatch({
 })
 rm(cddir)
 
-
 source("./utils/helpers.R")
 source("./utils/dump2arr.R")
 
 llibrary('ISOcodes')
 
-llibrary('rgdal')
+llibrary('rgdal') #gSimplify 
 llibrary('maptools')
 llibrary('ggplot2') 
 llibrary('plyr')
-
-# llibrary('maps')
-# llibrary('rgeos')
-# llibrary('mapdata')
-# llibrary('spatstat')
 
 # get the countries in the UN_M ISO and extract teh set of countries that match
 # the map_data countries. 
 data("UN_M.49_Countries")
 data("UN_M.49_Regions")
-map.data <- map_data('world2') 
 
-map.regions <- unique(map.data$region)
-map.regions <- map.regions[which(map.regions %in% UN_M.49_Countries$Name)]
-
-not.in.map.regions <- UN_M.49_Countries$Name[
-  !(UN_M.49_Countries$Name %in% unique(map.data$region))
-  ]
-not.in.un.countries <- unique(map.data$region[
-  !(unique(map.data$region) %in% UN_M.49_Countries$Name)  
-  ])
+# Build a simple df of all of the countries and regions. 
+countries.and.regions <- UN_M.49_Countries[,]
+countries.and.regions$isRegion = F
+rgns <- UN_M.49_Regions[,c('Code', 'Name')]
+rgns$ISO_Alpha_3 <- NA
+rgns$isRegion <- T
+countries.and.regions <- rbind(countries.and.regions, rgns)
 
 # Lets aquire the countries from the shapefiles I downloaded from the internet.
 countries <- readOGR(dsn='../data/mapdata/TM_WORLD_BORDERS-0.3/', layer='TM_WORLD_BORDERS-0.3')
+nc <- length(rownames(countries@data))
 
-# llibrary('shapefiles')
-countries.dp <- gSimplify(spgeom=countries@data, tol=0.01)
-# countries <- dp(points=countries@data, tolerance=2)
+# Associate the country ID's to the data. 
+countries@data$id <- rownames(countries@data) 
 
-# countries@data$id <- rownames(countries@data)
-# countries.points <- fortify(countries, region='id')
-# countries.df <- join(countries.points, countries@data, by='id')
-# 
-# # Lets plot our countries now. 
-# ggplot(countries.df) + 
-#   aes(long,lat,group=group,fill=NAME) +
-#   geom_polygon() + 
-#   geom_path(color="white") +
-#   coord_equal()
+# Create a simplified map for ggplot to improve the plotting speed. 
+countries.dp <- gSimplify(countries, 0.273, topologyPreserve=T)
+countries.dp.points <- fortify(countries, region='id')
+countries.dp.df <- join(countries.dp.points, countries@data, by='id')
+
+# Create a complex map for ggplot to generate a pretty plot. 
+countries.points <- fortify(countries, region='id')
+countries.df <- join(countries.points, countries@data, by='id')
+
+ggplot(countries.dp.df) + 
+  aes(long,lat,group=group,fill=NAME) +
+  geom_polygon() + 
+  geom_path(color="white") +
+  coord_equal()
+
+
+# UN == Code 
+
+
 
