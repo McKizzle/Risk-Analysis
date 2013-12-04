@@ -1,5 +1,18 @@
+FLUSH_ENV <- F
+RM_IGNORE <- c('countries.dp', 'countries.dp.points', 'countries.dp.df',
+               'countries.points', 'countries.df')
+FLUSH_IGNORE <- c('FLUSH_ENV', 'RM_IGNORE')
+
 # R Script that takes all of the CSV data calls the proper scripts and dumps it to an sqlite database.
-rm(list=ls())
+if(FLUSH_ENV) {
+  lst <- ls()
+  lst <- lst[which(!(lst %in% FLUSH_IGNORE))]
+  rm(list=lst)
+} else {
+  lst <- ls()
+  lst <- lst[which(!(lst %in% c(RM_IGNORE, FLUSH_IGNORE)))]
+  rm(list=lst)
+}
 
 # Set the working directory
 cddir <- tryCatch({
@@ -13,8 +26,9 @@ source("./utils/helpers.R")
 source("./utils/dump2arr.R")
 
 llibrary('ISOcodes')
-
-llibrary('rgdal') #gSimplify 
+llibrary('shiny')
+llibrary('rgdal') 
+llibrary('rgeos')#gSimplify 
 llibrary('maptools')
 llibrary('ggplot2') 
 llibrary('plyr')
@@ -34,26 +48,26 @@ countries.and.regions <- rbind(countries.and.regions, rgns)
 
 # Lets aquire the countries from the shapefiles I downloaded from the internet.
 countries <- readOGR(dsn='../data/mapdata/TM_WORLD_BORDERS-0.3/', layer='TM_WORLD_BORDERS-0.3')
-nc <- length(rownames(countries@data))
 
-# Associate the country ID's to the data. 
+# Simplify the polygon data so the map quality increases. 
 countries@data$id <- rownames(countries@data) 
+if(length(RM_IGNORE[RM_IGNORE %in% ls()]) != length(RM_IGNORE)) { 
+  system.time(countries.dp <- gSimplify(countries, 0.273, topologyPreserve=T))
+  system.time(countries.dp.points <- fortify(countries, region='id'))
+  system.time(countries.dp.df <- join(countries.dp.points, countries@data, by='id'))
+  
+  # Create a complex map for ggplot to generate a pretty plot. 
+  system.time(countries.points <- fortify(countries, region='id'))
+  system.time(countries.df <- join(countries.points, countries@data, by='id'))
+}
 
-# Create a simplified map for ggplot to improve the plotting speed. 
-countries.dp <- gSimplify(countries, 0.273, topologyPreserve=T)
-countries.dp.points <- fortify(countries, region='id')
-countries.dp.df <- join(countries.dp.points, countries@data, by='id')
+runApp('./') #Start the shiny application.
 
-# Create a complex map for ggplot to generate a pretty plot. 
-countries.points <- fortify(countries, region='id')
-countries.df <- join(countries.points, countries@data, by='id')
-
-ggplot(countries.dp.df) + 
-  aes(long,lat,group=group,fill=NAME) +
-  geom_polygon() + 
-  geom_path(color="white") +
-  coord_equal()
-
+# ggplot(countries.dp.df) + 
+#   aes(long,lat,group=group,fill=NAME) +
+#   geom_polygon() + 
+#   geom_path(color="white") +
+#   coord_equal()
 
 # UN == Code 
 
