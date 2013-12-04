@@ -39,14 +39,6 @@ llibrary('plyr')
 data("UN_M.49_Countries")
 data("UN_M.49_Regions")
 
-# Build a simple df of all of the countries and regions. 
-countries.and.regions <- UN_M.49_Countries[,]
-countries.and.regions$isRegion = F
-rgns <- UN_M.49_Regions[,c('Code', 'Name')]
-rgns$ISO_Alpha_3 <- NA
-rgns$isRegion <- T
-countries.and.regions <- rbind(countries.and.regions, rgns)
-
 # Lets aquire the countries from the shapefiles I downloaded from the internet.
 countries <- readOGR(dsn='../data/mapdata/TM_WORLD_BORDERS-0.3/', layer='TM_WORLD_BORDERS-0.3')
 
@@ -62,6 +54,7 @@ if(length(RM_IGNORE[RM_IGNORE %in% ls()]) != length(RM_IGNORE)) {
   system.time(countries.df <- join(countries.points, countries@data, by='id'))
 }
 
+crime.data <- unodc.homicides.df
 
 runApp('./') #Start the shiny application.
 
@@ -74,4 +67,12 @@ runApp('./') #Start the shiny application.
 # UN == Code 
 
 
+############ SCRAP ##############
+# Build a simple df of all of the countries and regions. 
+# countries.and.regions <- UN_M.49_Countries[,]
+# countries.and.regions$isRegion = F
+# rgns <- UN_M.49_Regions[,c('Code', 'Name')]
+# rgns$ISO_Alpha_3 <- NA
+# rgns$isRegion <- T
+# countries.and.regions <- rbind(countries.and.regions, rgns)
 
