@@ -24,6 +24,7 @@ rm(cddir)
 
 source("./utils/helpers.R")
 source("./utils/dump2arr.R")
+source("./tools.R")
 
 llibrary('ISOcodes')
 llibrary('shiny')
@@ -60,6 +61,7 @@ if(length(RM_IGNORE[RM_IGNORE %in% ls()]) != length(RM_IGNORE)) {
   system.time(countries.points <- fortify(countries, region='id'))
   system.time(countries.df <- join(countries.points, countries@data, by='id'))
 }
+
 
 runApp('./') #Start the shiny application.
 
