@@ -39,44 +39,53 @@ shinyServer(function(input, output) {
 
   # Render data.frame of child regions
   output$sel.child.regions <- renderTable({
-#     # Extract all of the regions that where selected. 
-#     children <- un_regions4children(
-#       UN_M.49_Regions[UN_M.49_Regions$Code %in% input$regions,]
-#       )
-    children <- un_regions4children_regions(
-      UN_M.49_Regions[UN_M.49_Regions$Code %in% input$regions,]
-      )
+    # Extract all of the regions that where inadvertantly selecected. 
+    sel.regions <- UN_M.49_Regions[UN_M.49_Regions$Code %in% input$regions,]
+    child.regions <- un_regions4children_regions(sel.regions, UN_M.49_Regions)
     
-    UN_M.49_Regions[UN_M.49_Regions$Code %in% children,]
+    child.regions[!(child.regions$Code %in% sel.regions$Code),]
   })
   
   # Render data.frame of child countries. 
   output$sel.child.countries <- renderTable({
-    child.countries <- un_regions4children.countries(input$regions, UN_M.49_Regions, UN_M.49_Countries)
+    sel.regions <- UN_M.49_Regions[UN_M.49_Regions$Code %in% input$regions,]
+    child.regions <- un_regions4children_regions(sel.regions, UN_M.49_Regions)
+    child.countries <- un_regions4children.countries(child.regions, 
+                                                     UN_M.49_Countries)
   }) 
   
   # Render the selected data. 
   output$sel.yrs.data <- renderTable({
     yrs <- input$years.range.slider
-    crime.subset.by.year.countries(input, yrs, crime.data, UN_M.49_Regions,
-                                   UN_M.49_Countries)
+    crime.sub <- select.years.countries.crime(yrs, input$regions, 
+                                              crime.data, UN_M.49_Regions, 
+                                              UN_M.49_Countries)
   })
   
   # Render the selected data for the single year.
   output$sel.yr.data <- renderTable({
     yr <- selected.year(input)
-    crime.subset.by.year.countries(input, yr, crime.data, UN_M.49_Regions,
-                                   UN_M.49_Countries)
+    yr <- c(yr, yr)
+    
+    crime.sub <- select.years.countries.crime(yr, input$regions, 
+                                              crime.data, UN_M.49_Regions, 
+                                              UN_M.49_Countries)
+  })
+  
+  
+  ##### Rendering Plot Zone ####
+  output$data.map <- renderPlot({
+    datamap <- ggplot(countries.dp.df) + 
+      aes(long,lat,group=group,fill=NAME) +
+      geom_polygon() + 
+      geom_path(color="white") +
+      coord_equal()
+    print(datamap)
+#     plot(countries.dp)
   })
 })
 
-crime.subset.by.year.countries <- function (input, years, crime.df, regions, countries) {
-  cntrs <- un_regions4children.countries(input$regions, regions, countries)
-  
-  cd <- crime.df[crime.df$crmYear %in% years, ]
-  cd <- cd[cd$crmLocation %in% cntrs$Name, ]
-}
-
+# Extract the selected year. 
 selected.year <- function(input) {
   yr <- input$years.range.slider  
   sel.year = yr[1]
@@ -86,3 +95,4 @@ selected.year <- function(input) {
   
   return(sel.year)
 }
+

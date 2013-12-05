@@ -10,7 +10,7 @@ shinyUI(basicPage(
   div(
     tabsetPanel(
       tabPanel('Other Stuff'),
-      tabPanel('Map', plotOutput('data.map')),
+      tabPanel('Map', plotOutput('data.map', width='100%')),
       tabPanel('Plots'),
       tabPanel('Selections',
                sidebarPanel(

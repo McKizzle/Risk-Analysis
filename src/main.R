@@ -33,6 +33,7 @@ llibrary('rgeos')#gSimplify
 llibrary('maptools')
 llibrary('ggplot2') 
 llibrary('plyr')
+llibrary('RColorBrewer')
 
 # get the countries in the UN_M ISO and extract teh set of countries that match
 # the map_data countries. 
@@ -56,13 +57,35 @@ if(length(RM_IGNORE[RM_IGNORE %in% ls()]) != length(RM_IGNORE)) {
 
 crime.data <- unodc.homicides.df
 
-runApp('./') #Start the shiny application.
+# runApp('./', launch.browser=F) #Start the shiny application.
 
-# ggplot(countries.dp.df) + 
-#   aes(long,lat,group=group,fill=NAME) +
-#   geom_polygon() + 
-#   geom_path(color="white") +
-#   coord_equal()
+# Our test regions. 
+sel.region.codes <- c('019', '419', '021')
+sel.year <- c('2009', '2009')
+sel.regions <- UN_M.49_Regions[UN_M.49_Regions$Code %in% sel.region.codes,]
+child.regions <- un_regions4children_regions(sel.regions, UN_M.49_Regions)
+sel.countries <- un_regions4children.countries(child.regions, UN_M.49_Countries)
+sub.crime <- select.years.countries.crime(sel.year, sel.region.codes, 
+                                          crime.data, UN_M.49_Regions, 
+                                          UN_M.49_Countries)
+sub.crime <- merge(sub.crime, UN_M.49_Countries, 
+                   by.x='crmLocation', by.y='Name')
+cntrs.s.crm <- merge(countries.dp.df, sub.crime, by.x='UN', by.y='Code')
+# cntrs.s.crm <- cntrs.s.crm[cntrs.s.crm$UN %in% as.integer(sel.countries$Code),]
+
+sub.countries.dp <- countries.dp.df[countries.dp.df$UN %in% as.integer(sel.countries$Code),]
+sub.countries.dp$crmValue <- 0
+for(name in unique(sub.crime$crmLocation) {
+  indeces <- which(sub.countries.dp$NAME == name)
+  sub.countries.dp[indeces,]$crmValue = sub.crime[sub.crime$crmLocation == name, 'crmValue']
+}
+
+
+ggplot(sub.countries.dp) + 
+  aes(long,lat,group=group,fill=NAME) +
+  geom_polygon() + 
+  geom_path(color="white") +
+  coord_equal()
 
 # UN == Code 
 
