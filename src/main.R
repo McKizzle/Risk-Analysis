@@ -60,7 +60,7 @@ crime.data <- unodc.homicides.df
 # runApp('./', launch.browser=F) #Start the shiny application.
 
 # Our test regions. 
-sel.region.codes <- c('019', '419', '021')
+sel.region.codes <- c('021')#c('019', '419', '021')
 sel.year <- c('2009', '2009')
 sel.regions <- UN_M.49_Regions[UN_M.49_Regions$Code %in% sel.region.codes,]
 child.regions <- un_regions4children_regions(sel.regions, UN_M.49_Regions)
@@ -70,22 +70,48 @@ sub.crime <- select.years.countries.crime(sel.year, sel.region.codes,
                                           UN_M.49_Countries)
 sub.crime <- merge(sub.crime, UN_M.49_Countries, 
                    by.x='crmLocation', by.y='Name')
-cntrs.s.crm <- merge(countries.dp.df, sub.crime, by.x='UN', by.y='Code')
-# cntrs.s.crm <- cntrs.s.crm[cntrs.s.crm$UN %in% as.integer(sel.countries$Code),]
 
 sub.countries.dp <- countries.dp.df[countries.dp.df$UN %in% as.integer(sel.countries$Code),]
-sub.countries.dp$crmValue <- 0
-for(name in unique(sub.crime$crmLocation) {
-  indeces <- which(sub.countries.dp$NAME == name)
-  sub.countries.dp[indeces,]$crmValue = sub.crime[sub.crime$crmLocation == name, 'crmValue']
+sub.countries.dp$crmValue = NA
+for(code in sub.crime$Code) {
+  matching <- which(sub.countries.dp$UN == as.integer(code))
+  sub.countries.dp[matching, 'crmValue'] = sub.crime[sub.crime$Code == code, 'crmValue']
 }
 
+sub.countries.dp[sub.countries.dp$NAME == 'Canada', 'crmValue'] = NA
+choropleth <- ggplot(sub.countries.dp, aes(x=long, y=lat, group=group)) + 
+  scale_fill_continuous('Rate Per 100,000', low='#C7E9C0', high='#114000') +
+  geom_polygon(data=subset(sub.countries.dp, !is.na(crmValue)), aes(fill=crmValue)) + 
+  geom_polygon(data=subset(sub.countries.dp, is.na(crmValue)), aes(fill=NA),
+               linetype = 0, fill = "gray", alpha = 0.5) +
+  xlab('Longitude') + ylab('Latitude') +
+  coord_map()
+print(choropleth)
 
-ggplot(sub.countries.dp) + 
-  aes(long,lat,group=group,fill=NAME) +
-  geom_polygon() + 
-  geom_path(color="white") +
-  coord_equal()
+choropleth.na <- ggplot(sub.countries.dp, aes(x=long, y=lat, group=group)) + 
+  geom_polygon(data=subset(sub.countries.dp, is.na(crmValue)), aes(colour='NA'),
+               linetype = 0, fill = "gray", alpha = 0.5)
+print(choropleth.na)
+
+##### OLD #######
+# sub.countries.dp[sub.countries.dp$NAME == 'Canada', 'crmValue'] = NA
+# sub.countries.dp.na <- sub.countries.dp[is.na(sub.countries.dp$crmValue),]
+# sub.countries.dp.na$Color = 'white'
+# sub.countries.dp <- sub.countries.dp[!is.na(sub.countries.dp$crmValue),]
+# 
+# choropleth <- ggplot(sub.countries.dp) + 
+#   aes(long,lat,group=group, fill=crmValue) +
+#   scale_fill_continuous('Rate Per 100,000', low='#C7E9C0', high='#114000') + 
+#   geom_polygon() + 
+#   geom_path(color="white", size=0.05) + 
+#   coord_equal()
+# choropleth <- choropleth + geom_polygon(data=sub.countries.dp.na, 
+#                                         aes(x=long, y=lat, group=group, colour='UKN'), 
+#                                         fill="gray", linetype='blank') 
+# print(choropleth)
+  
+
+# print(choropleth + na.geoms + scale_colour_manual(values=c('white'='white', 'white'='white'), labels = c('UKN')))
 
 # UN == Code 
 
