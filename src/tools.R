@@ -48,13 +48,10 @@ crime.subset.by.countries <- function (sel.countries, crime.df) {
 }
 
 # Select a subset from the crimes data.frame by year and a set of regions. 
-select.years.countries.crime <- function(years.rng, sel.regions, crime.df,
-                                         regions, countries) {
-  sel.regions <- regions[regions$Code %in% sel.regions,]
-  child.regions <- un_regions4children_regions(sel.regions, regions)
-  child.countries <- un_regions4children.countries(child.regions, countries)
+select.years.countries.crime <- function(years.rng, sel.countries, 
+                                         crime.df, countries) {
   crime.sub <- crime.subset.by.year(years.rng, crime.df)
-  crime.sub <- crime.subset.by.countries(child.countries, crime.sub)
+  crime.sub <- crime.subset.by.countries(sel.countries, crime.sub)
   
   return(crime.sub)
 }
