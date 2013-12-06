@@ -1,0 +1,6 @@
+Bad:
+    http://shineanthology.files.wordpress.com/2008/12/network-graph-31.png
+Good:
+    http://circos.ca/guide/genomic/
+    
+

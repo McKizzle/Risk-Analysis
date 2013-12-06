@@ -1,0 +1,10 @@
+# Tell git to ignore these files in all of the sub directories. 
+*.out
+*.pdf
+*.toc
+*.aux
+*.log
+*.swp
+*.bbl
+*.blg
+

@@ -117,7 +117,7 @@ shinyServer(function(input, output) {
     }
     
     plot <- ggplot(sub.crime, aes(factor(cntryStatus), crmValue)) +
-      ggtitle('Homicides Distribution vs Development State') + 
+      ggtitle(paste('Homicides Distribution vs Development State (', sel.year[1], '-', sel.year[2], ')', sep='')) + 
       ylab('Homicides (per 100,000)') + xlab('State')
     
     if(input$enable.violin) {
